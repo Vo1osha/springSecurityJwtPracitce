@@ -12,7 +12,7 @@ public interface EmployeeService {
 
     Employee findEmployeeByLogin(String login);
 
-    void validatePAssword(Employee employee, String rawPassword);
+    Employee findEmployeeById(Long id);
 
 
     void deleteEmployee(Long id);

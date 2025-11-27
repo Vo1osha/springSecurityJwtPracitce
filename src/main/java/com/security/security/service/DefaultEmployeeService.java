@@ -4,6 +4,7 @@ import com.security.security.entity.Employee;
 import com.security.security.repository.EmployeeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,8 @@ import java.util.List;
 public class DefaultEmployeeService implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
-    private final PasswordEncoder passwordEncoder;
+
+
 
     @Override
     public Employee createEmployee(Employee employeePayload) {
@@ -38,11 +40,11 @@ public class DefaultEmployeeService implements EmployeeService {
     }
 
     @Override
-    public void validatePAssword(Employee employee, String rawPassword) {
-        if(!passwordEncoder.matches(rawPassword, employee.getPassword())){
-            throw new RuntimeException("Invalid password for: "+ employee.getLogin());
-        }
+    public Employee findEmployeeById(Long id) {
+        return this.employeeRepository.findById(id).orElseThrow(()->
+                new EntityNotFoundException("User with id: %s not found: ".formatted(id)));
     }
+
 
     @Override
     public void deleteEmployee(Long id) {

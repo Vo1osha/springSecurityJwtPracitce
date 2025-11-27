@@ -1,8 +1,7 @@
-package com.security.security.service;
+package com.security.security.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 
 public interface JwtService {
 
@@ -11,4 +10,6 @@ public interface JwtService {
     Claims parseToken(String token);
 
     boolean validateToken(String token);
+
+    public String extractTokenFromHeader(String authHeader);
 }

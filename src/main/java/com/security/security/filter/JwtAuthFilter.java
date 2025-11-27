@@ -1,32 +1,25 @@
 package com.security.security.filter;
 
-import com.security.security.security.EmployeeUserDetailsService;
-import com.security.security.service.JwtService;
-import io.jsonwebtoken.Claims;
+import com.security.security.security.jwt.JwtTokenValidator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 
-@Component
+
 @RequiredArgsConstructor
 @Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
-
-    private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final JwtTokenValidator jwtTokenValidator;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -36,17 +29,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             String token = getTokenFromRequest(request);
 
-            if (token != null && jwtService.validateToken(token)) {
-                Claims claims = jwtService.parseToken(token);
-                String username = claims.getSubject();
-
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
+            if (token != null) {
+                Authentication authentication = jwtTokenValidator.validateAndCreateAuth(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("Authenticated user: {}", username);
+                log.debug("Authenticated user: {}", authentication.getName());
             }
         } catch (Exception e) {
             log.error("Cannot set user authentication: {}", e.getMessage());

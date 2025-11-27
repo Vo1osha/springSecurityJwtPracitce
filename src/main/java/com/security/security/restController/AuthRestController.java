@@ -1,49 +1,60 @@
 package com.security.security.restController;
 
-import com.security.security.entity.Employee;
 import com.security.security.entity.EntityPayload.AuthRequest;
 import com.security.security.entity.EntityPayload.AuthResponse;
-import com.security.security.security.EmployeeUserDetails;
+import com.security.security.security.jwt.TokenValidationService;
+import com.security.security.security.services.EmployeeUserDetails;
 import com.security.security.service.DefaultEmployeeService;
-import com.security.security.service.DefaultJwtService;
+import com.security.security.security.jwt.DefaultJwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("v1/api/auth")
+@RequestMapping("api/v1/auth")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthRestController {
 
     private final DefaultJwtService defaultJwtService;
     private final DefaultEmployeeService defaultEmployeeService;
-
+    private final TokenValidationService tokenValidationService;
+    private final AuthenticationManager authenticationManager;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest){
-        Employee employee = this.defaultEmployeeService.findEmployeeByLogin(authRequest.username());
-        this.defaultEmployeeService.validatePAssword(employee, authRequest.password());
 
-        String token = defaultJwtService.generateToken(employee.getLogin(),new EmployeeUserDetails(employee));
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password()));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String token = defaultJwtService.generateToken(authentication);
+
+
+        EmployeeUserDetails userDetails = (EmployeeUserDetails) authentication.getPrincipal();
+
+
 
 
         AuthResponse authResponse = new AuthResponse(
-                employee.getId(),
-                employee.getLogin(),
-                employee.getFullName(),
-                employee.getRoles()
-        );
+                userDetails.getEmployeeId(),
+                userDetails.getLogin(),
+                userDetails.getFullName(),
+                userDetails.getAuthorities().stream()
+                        .map(item -> item.getAuthority())
+                        .collect(Collectors.toSet()
+        ));
 
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
@@ -53,10 +64,13 @@ public class AuthRestController {
                 .sameSite("Lax")
                 .build();
 
-        log.info("User auth successfully {} ID: {} with roles {}",
-                employee.getLogin(),
-                employee.getId(),
-                employee.getRoles());
+        log.info("User auth successfully {} ID: {} - {} with roles {}",
+                userDetails.getLogin(),
+                userDetails.getEmployeeId(),
+                userDetails.getFullName(),
+                userDetails.getAuthorities().stream()
+                        .map(item -> item.getAuthority())
+                        .collect(Collectors.toSet()));
 
         return   ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -65,5 +79,11 @@ public class AuthRestController {
                         "type", "Bearer",
                         "user", authResponse
                         ));
+    }
+
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String authHeader){
+        AuthResponse authResponse = this.tokenValidationService.validateTokenAndGetUserInfo(authHeader);
+        return ResponseEntity.ok().body(authResponse);
     }
 }

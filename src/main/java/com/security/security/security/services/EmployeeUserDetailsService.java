@@ -1,10 +1,9 @@
-package com.security.security.security;
+package com.security.security.security.services;
 
 import com.security.security.entity.Employee;
 import com.security.security.repository.EmployeeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

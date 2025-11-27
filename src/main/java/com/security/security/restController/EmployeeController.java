@@ -3,6 +3,7 @@ package com.security.security.restController;
 
 import com.security.security.entity.Employee;
 import com.security.security.entity.EntityPayload.AuthResponse;
+import com.security.security.entity.Role;
 import com.security.security.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -29,7 +32,9 @@ public class EmployeeController {
                 employee.getId(),
                 employee.getLogin(),
                 employee.getFullName(),
-                employee.getRoles()
+                employee.getRoles().stream()
+                        .map(Role::getName)
+                        .collect(Collectors.toSet())
         );
         return  ResponseEntity.ok(authResponse);
     }

@@ -22,7 +22,10 @@ public class DataInitializerExample implements CommandLineRunner {
     public void run(String... args) throws Exception {
         Role adminRole = new Role();
         adminRole.setName("ROLE_ADMIN");
+        Role userRole = new Role();
+        userRole.setName("ROLE_USER");
         roleRepository.save(adminRole);
+        roleRepository.save(userRole);
 
 
         Employee employee = new Employee();
@@ -30,6 +33,7 @@ public class DataInitializerExample implements CommandLineRunner {
         employee.setPassword(passwordEncoder.encode("admin"));
         employee.setFullName("Admin User");
         employee.getRoles().add(adminRole);
+        employee.getRoles().add(userRole);
         employeeRepository.save(employee);
 
     }

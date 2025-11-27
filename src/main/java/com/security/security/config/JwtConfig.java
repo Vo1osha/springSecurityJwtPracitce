@@ -1,7 +1,5 @@
 package com.security.security.config;
 
-import com.security.security.service.DefaultJwtService;
-import com.security.security.service.JwtService;
 import io.jsonwebtoken.security.Keys;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
