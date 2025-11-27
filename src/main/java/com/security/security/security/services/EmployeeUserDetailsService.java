@@ -2,6 +2,7 @@ package com.security.security.security;
 
 import com.security.security.entity.Employee;
 import com.security.security.repository.EmployeeRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,12 +15,13 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@Setter
+
 public class EmployeeUserDetailsService implements UserDetailsService {
 
     private final EmployeeRepository employeeRepository;
 
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
         Employee employee = this.employeeRepository.findUserByLogin(login)
                 .orElseThrow(()->{
@@ -27,6 +29,6 @@ public class EmployeeUserDetailsService implements UserDetailsService {
                    return new UsernameNotFoundException("User not found by login: " + login);
                 });
         log.info("user found: {} - {}",login,employee.getFullName());
-        return new EmployeeUserDetails(employee);
+        return EmployeeUserDetails.build(employee);
     }
 }

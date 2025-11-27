@@ -1,4 +1,8 @@
+server:
+  port: 8081
 spring:
+  application:
+    name: security
   datasource:
     url: jdbc:postgresql://localhost:5432/urlshortener
     username: volosha
@@ -6,6 +10,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     flyway:
       enabled: true
+      baseline-on-migrate: true
   jpa:
     hibernate:
       ddl-auto: create-drop
