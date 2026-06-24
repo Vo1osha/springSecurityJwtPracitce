@@ -21,10 +21,14 @@ public class DefaultEmployeeService implements EmployeeService {
 
     @Override
     public Employee createEmployee(Employee employeePayload) {
-        Employee employee = new Employee();
-        employee.setLogin(employeePayload.getLogin());
-        employee.setPassword(employeePayload.getPassword());
-        employee.setFullName(employeePayload.getFullName());
+        // Лучше билдер,а не new как делал ранее
+         Employee employee = Employee.builder()
+            .login(employeePayload.getLogin())
+            .password(employeePayload.getPassword()) // можно добавить шифрование
+            .fullName(employeePayload.getFullName())
+            .build();
+        
+        log.info("Creating new employee with login: {}", employee.getLogin());
         return this.employeeRepository.save(employee);
     }
 
